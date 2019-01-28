@@ -74,5 +74,24 @@ scp /home/linkflow/kudu-spark2_2.11-1.8.0.jar spark-03:/usr/local/spark/jars/
 
 $HADOOP_HOME/bin/hdfs dfs -put /usr/local/spark/jars/kudu-spark2_2.11-1.8.0.jar /spark_jars/ 
 建表语句可以看Kudumain.java用kuduapi 创建可以创建range分区
+# jar包
+compileOnly group: 'org.apache.kudu', name: 'kudu-spark2_2.11', version: '1.8.0'
+
+# 遇到问题
+如果遇到运行rack_local多半是因为KuduRDD.getPartitions返回的是ip而不是hostname
+ val newLocations = locations.map(host => {
+          val hostNew = if (host.equals("10.0.0.5")) {
+            "spark-01"
+          } else if (host.equals("10.0.0.8")) {
+            "spark-02"
+          } else if (host.equals("10.0.0.9")) {
+            "spark-03"
+          } else {
+            host
+          }
+          hostNew
+        })
+硬编码做过一次，主要是感觉没有parquet快，处理能更新但是速度没有parquet快
+
 
 
