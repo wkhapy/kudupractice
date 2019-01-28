@@ -75,6 +75,6 @@ scp /home/linkflow/kudu-spark2_2.11-1.8.0.jar spark-02:/usr/local/spark/jars/
 scp /home/linkflow/kudu-spark2_2.11-1.8.0.jar spark-03:/usr/local/spark/jars/
 
 $HADOOP_HOME/bin/hdfs dfs -put /usr/local/spark/jars/kudu-spark2_2.11-1.8.0.jar /spark_jars/ 
-
+建表语句可以看Kudumain.java用kuduapi 创建可以创建range分区
 
 
