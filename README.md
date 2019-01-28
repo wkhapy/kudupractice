@@ -25,8 +25,7 @@ make -j4
 4.配置
 4.1master
 需要配置/etc/kudu/conf/master.gflagfile
-# Do not modify these two lines. If you wish to change these variables,
-# modify them in /etc/default/kudu-master.
+
 --fromenv=rpc_bind_addresses
 --fromenv=log_dir
 --fs_wal_dir=/data2/kudu/master
@@ -37,9 +36,8 @@ mkdir -p /data2/kudu/master
 
 
 4.2tserver配置
-# cat /etc/kudu/conf/tserver.gflagfile 
-# Do not modify these two lines. If you wish to change these variables,
-# modify them in /etc/default/kudu-tserver.
+ cat /etc/kudu/conf/tserver.gflagfile 
+
 --fromenv=rpc_bind_addresses
 --fromenv=log_dir
 --fs_wal_dir=/data2/kudu/tserver
