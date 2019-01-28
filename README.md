@@ -1,5 +1,5 @@
 # kudupractice
-编译
+# 编译
 
 1.sudo apt-get install autoconf automake curl flex g++ gcc gdb git \
   krb5-admin-server krb5-kdc krb5-user libkrb5-dev libsasl2-dev libsasl2-modules \
@@ -22,8 +22,8 @@ make -j4
 拷贝/data1/kudu-1.8.0/www到/data1/kudu-1.8.0/build/release否则前台页面启动会有问题
 
 
-4.配置
-4.1master
+# 配置
+#  master
 需要配置/etc/kudu/conf/master.gflagfile
 
 --fromenv=rpc_bind_addresses
@@ -35,7 +35,7 @@ mkdir -p /data2/kudu/master
 
 
 
-4.2tserver配置
+#  tserver配置
  cat /etc/kudu/conf/tserver.gflagfile 
 
 --fromenv=rpc_bind_addresses
@@ -49,8 +49,8 @@ mkdir -p /data2/kudu/tserver
 
 
 
-5.创建启动脚本
-5.1master
+#  创建启动脚本
+#  master
 start-master.sh
 export FLAGS_log_dir=/data3/kudu/log
 export FLAGS_rpc_bind_addresses=spark-01:7051
@@ -59,14 +59,14 @@ export KUDU_HOME=/data1/kudupack
 ./kudu-master --flagfile=/etc/kudu/conf/master.gflagfile
 
 
-5.2slave
+# slave
 export FLAGS_log_dir=/data3/kudu/log
 #export FLAGS_rpc_bind_addresses=spark-01:7050
 ./kudu-tserver --flagfile=/etc/kudu/conf/tserver.gflagfile
 
 
 
-和spark结合
+# 和spark结合
 上传kuduspark jar包
  cp /home/linkflow/kudu-spark2_2.11-1.8.0.jar /usr/local/spark/jars/
 scp /home/linkflow/kudu-spark2_2.11-1.8.0.jar spark-02:/usr/local/spark/jars/
