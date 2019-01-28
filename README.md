@@ -1,11 +1,11 @@
 # kudupractice
-build
+编译
 
 1.sudo apt-get install autoconf automake curl flex g++ gcc gdb git \
   krb5-admin-server krb5-kdc krb5-user libkrb5-dev libsasl2-dev libsasl2-modules \
   libsasl2-modules-gssapi-mit libssl-dev libtool lsb-release make ntp \
   openjdk-8-jdk openssl patch pkg-config python rsync unzip vim-common
-2.unzip kudu package
+2.解压kudu源码包
 go to kudu dir
 
 cd kudu
@@ -16,4 +16,65 @@ cd build/release
 ../../thirdparty/installed/common/bin/cmake -DNO_TESTS=1 -DCMAKE_BUILD_TYPE=release ../..
 make -j4
   
+3.编译完成后拷贝/data1/kudu-1.8.0/build/release的文件到安装目录
+
+/data1/kudu-1.8.0/build/release里面文件就是编译完成文件，大概有2g
+拷贝/data1/kudu-1.8.0/www到/data1/kudu-1.8.0/build/release否则前台页面启动会有问题
+
+
+4.配置
+4.1master
+需要配置/etc/kudu/conf/master.gflagfile
+# Do not modify these two lines. If you wish to change these variables,
+# modify them in /etc/default/kudu-master.
+--fromenv=rpc_bind_addresses
+--fromenv=log_dir
+--fs_wal_dir=/data2/kudu/master
+--fs_data_dirs=/data2/kudu/master
+
+mkdir -p /data2/kudu/master
+
+
+
+4.2tserver配置
+# cat /etc/kudu/conf/tserver.gflagfile 
+# Do not modify these two lines. If you wish to change these variables,
+# modify them in /etc/default/kudu-tserver.
+--fromenv=rpc_bind_addresses
+--fromenv=log_dir
+--fs_wal_dir=/data2/kudu/tserver
+--fs_data_dirs=/data2/kudu/tserver
+--tserver_master_addrs=bd-dev-ops-173:7051
+
+
+mkdir -p /data2/kudu/tserver
+
+
+
+5.创建启动脚本
+5.1master
+start-master.sh
+export FLAGS_log_dir=/data3/kudu/log
+export FLAGS_rpc_bind_addresses=spark-01:7051
+export KUDU_HOME=/data1/kudupack
+
+./kudu-master --flagfile=/etc/kudu/conf/master.gflagfile
+
+
+5.2slave
+export FLAGS_log_dir=/data3/kudu/log
+#export FLAGS_rpc_bind_addresses=spark-01:7050
+./kudu-tserver --flagfile=/etc/kudu/conf/tserver.gflagfile
+
+
+
+和spark结合
+上传kuduspark jar包
+ cp /home/linkflow/kudu-spark2_2.11-1.8.0.jar /usr/local/spark/jars/
+scp /home/linkflow/kudu-spark2_2.11-1.8.0.jar spark-02:/usr/local/spark/jars/
+scp /home/linkflow/kudu-spark2_2.11-1.8.0.jar spark-03:/usr/local/spark/jars/
+
+$HADOOP_HOME/bin/hdfs dfs -put /usr/local/spark/jars/kudu-spark2_2.11-1.8.0.jar /spark_jars/ 
+
+
 
