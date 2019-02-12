@@ -1,1 +1,98 @@
 
+# kudupractice
+# 编译
+
+1.sudo apt-get install autoconf automake curl flex g++ gcc gdb git \
+  krb5-admin-server krb5-kdc krb5-user libkrb5-dev libsasl2-dev libsasl2-modules \
+  libsasl2-modules-gssapi-mit libssl-dev libtool lsb-release make ntp \
+  openjdk-8-jdk openssl patch pkg-config python rsync unzip vim-common
+2.解压kudu源码包
+go to kudu dir
+
+cd kudu
+thirdparty/build-if-necessary.sh
+
+mkdir -p build/release
+cd build/release
+../../thirdparty/installed/common/bin/cmake -DNO_TESTS=1 -DCMAKE_BUILD_TYPE=release ../..
+make -j4
+  
+3.编译完成后拷贝/data1/kudu-1.8.0/build/release的文件到安装目录
+
+/data1/kudu-1.8.0/build/release里面文件就是编译完成文件，大概有2g
+拷贝/data1/kudu-1.8.0/www到/data1/kudu-1.8.0/build/release否则前台页面启动会有问题
+
+
+# 配置
+#  master
+需要配置/etc/kudu/conf/master.gflagfile
+
+--fromenv=rpc_bind_addresses
+--fromenv=log_dir
+--fs_wal_dir=/data2/kudu/master
+--fs_data_dirs=/data2/kudu/master
+
+mkdir -p /data2/kudu/master
+
+
+
+#  tserver配置
+ cat /etc/kudu/conf/tserver.gflagfile 
+
+--fromenv=rpc_bind_addresses
+--fromenv=log_dir
+--fs_wal_dir=/data2/kudu/tserver
+--fs_data_dirs=/data2/kudu/tserver
+--tserver_master_addrs=bd-dev-ops-173:7051
+
+
+mkdir -p /data2/kudu/tserver
+
+
+
+#  创建启动脚本
+#  master
+start-master.sh
+export FLAGS_log_dir=/data3/kudu/log
+export FLAGS_rpc_bind_addresses=spark-01:7051
+export KUDU_HOME=/data1/kudupack
+
+./kudu-master --flagfile=/etc/kudu/conf/master.gflagfile
+
+
+# slave
+export FLAGS_log_dir=/data3/kudu/log
+#export FLAGS_rpc_bind_addresses=spark-01:7050
+./kudu-tserver --flagfile=/etc/kudu/conf/tserver.gflagfile
+
+
+
+# 和spark结合
+上传kuduspark jar包
+ cp /home/linkflow/kudu-spark2_2.11-1.8.0.jar /usr/local/spark/jars/
+scp /home/linkflow/kudu-spark2_2.11-1.8.0.jar spark-02:/usr/local/spark/jars/
+scp /home/linkflow/kudu-spark2_2.11-1.8.0.jar spark-03:/usr/local/spark/jars/
+
+$HADOOP_HOME/bin/hdfs dfs -put /usr/local/spark/jars/kudu-spark2_2.11-1.8.0.jar /spark_jars/ 
+建表语句可以看Kudumain.java用kuduapi 创建可以创建range分区
+# jar包
+compileOnly group: 'org.apache.kudu', name: 'kudu-spark2_2.11', version: '1.8.0'
+
+# 遇到问题
+如果遇到运行rack_local多半是因为KuduRDD.getPartitions返回的是ip而不是hostname
+ val newLocations = locations.map(host => {
+          val hostNew = if (host.equals("10.0.0.5")) {
+            "spark-01"
+          } else if (host.equals("10.0.0.8")) {
+            "spark-02"
+          } else if (host.equals("10.0.0.9")) {
+            "spark-03"
+          } else {
+            host
+          }
+          hostNew
+        })
+硬编码做过一次，主要是感觉没有parquet快，处理能更新但是速度没有parquet快
+
+
+
